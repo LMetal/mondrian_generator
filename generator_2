@@ -1,0 +1,219 @@
+import numpy as np
+from random import randint as rand
+from PIL import Image
+
+# valori modificabili
+lato = 100
+n_immagini = 10
+n_linee = 10
+# n_spazi_colorati = 5
+n_colori = 8
+colore_linee = [0, 0, 0]
+colore_sfondo = [255, 255, 255]
+
+
+# linea
+def nuova_linea():
+    while True:
+        y = rand(1, lato - 2)
+        x = rand(1, lato - 2)
+        if (array[y][x] == colore_linee).all():
+            intorno_punto = analisi_punto(y, x)
+            if intorno_punto == [True, True, True, True]:  # controllo non angolo e larghezza
+                continue
+            else:
+                array[y][x] = [255, 0, 0]  # punto rosso
+                while True:
+                    rand_direction = rand(0, 3)
+                    if not intorno_punto[rand_direction]:  # se la direzione selezioonata da rand è vuota
+                        if rand_direction == 0:  # verso l'alto
+                            gen_vert(y, x, True)
+                        elif rand_direction == 1:  # verso basso
+                            gen_vert(y, x, False)
+                        elif rand_direction == 2:  # verso destra
+                            gen_oriz(y, x, True)
+                        else:  # verso sinistra
+                            gen_oriz(y, x, False)
+
+                        break
+            break
+
+
+def gen_oriz(y, x, right):
+    if right:  # verso destra
+        delta_x = 0
+        while True:
+            delta_x = delta_x + 1
+
+            if (array[y][x + delta_x] == colore_linee).all():
+                break
+            else:
+                array[y][x + delta_x] = colore_linee
+    else:  # verso sinistra
+        delta_x = 0
+        while True:
+            delta_x = delta_x + 1
+            if (array[y][x - delta_x] == colore_linee).all():
+                break
+            else:
+                array[y][x - delta_x] = colore_linee
+
+
+def gen_vert(y, x, up):
+    if up:  # verso l'alto
+        delta_y = 0
+        while True:
+            delta_y = delta_y - 1
+
+            if (array[y + delta_y][x] == colore_linee).all():
+                break
+            else:
+                array[y + delta_y][x] = colore_linee
+    else:  # verso in basso
+        delta_y = 0
+        while True:
+            delta_y = delta_y + 1
+            if (array[y + delta_y][x] == colore_linee).all():
+                break
+            else:
+                array[y + delta_y][x] = colore_linee
+
+
+def analisi_punto(y, x):  # ritorna [sopra, sotto, destra, sinistra]
+    intorno_punto = [(array[y - 1][x] == colore_linee).all(), (array[y + 1][x] == colore_linee).all(),
+                     (array[y][x + 1] == colore_linee).all(), (array[y][x - 1] == colore_linee).all()]
+    # print(intorno_punto)
+
+    # glitch qua sotto
+    if intorno_punto[0]:
+        print(intorno_punto[0])
+        for i in range(lato):
+            if (array[y - 1][x + i] == colore_linee).all():
+                print(array[y-1][x+i])
+                print(i)
+                if i < 4:
+                    intorno_punto[0] = False
+                break
+
+        for i in range(lato):
+            if (array[y - 1][x - i] == [0, 0, 0]).all():
+                if i < 4:
+                    intorno_punto[0] = False
+                break
+
+
+    print(intorno_punto[0])
+
+    if intorno_punto[1]:
+        i = 0
+        for i in range(lato):
+            if (array[y + 1][x + i] == [0, 0, 0]).all():
+                break
+        if i < 1:
+            intorno_punto[1] = False
+        i = 0
+        for i in range(lato):
+            if (array[y + 1][x - i] == [0, 0, 0]).all():
+                break
+        if i < 1:
+            intorno_punto[1] = False
+
+    return intorno_punto
+
+
+# fine linea
+
+
+# colore in spazi
+def colora_spazio(i):
+    while True:
+        y = rand(1, lato - 2)
+        x = rand(1, lato - 2)
+        if (array[y][x] == colore_sfondo).all():
+            array[y][x] = [0, 255, 0]
+            y_angolo, x_angolo = angolo(y, x)
+            colore_spazio = scelta_colore(i)
+            if colore_spazio == [255, 255, 255]:
+                continue
+            for m in range(lato):
+                y_colore = y_angolo + m
+                x_colore = x_angolo
+                while not (array[y_colore][x_colore] == colore_linee).all():  # fa na linea orizzontale di colore
+                    array[y_colore][x_colore] = colore_spazio
+                    x_colore = x_colore + 1
+                if (array[y_colore + 1][x_angolo] == colore_linee).all():
+                    break
+        else:
+            continue
+        break
+
+
+def angolo(y_angolo, x_angolo):
+    while not (array[y_angolo - 1][x_angolo] == colore_linee).all():  # si sposta verso l'alto
+        y_angolo = y_angolo - 1
+    while not (array[y_angolo][x_angolo - 1] == colore_linee).all():  # si sposta verso l'sinistra
+        x_angolo = x_angolo - 1
+    array[y_angolo][x_angolo] = [0, 0, 255]
+    return y_angolo, x_angolo
+
+
+def scelta_colore(i):
+    if i == 0:
+        return [255, 255, 0]
+    if i == 1:
+        return [255, 0, 0]
+    if i == 2:
+        return [0, 0, 255]
+
+    if rand(0, 3) == 0:  # colora un quarto degli spazi bianchi
+        random = rand(0, 10)
+        if random == 0 or random == 1 or random == 2:  # rosso
+            return [255, 0, 0]
+        if random == 3 or random == 4 or random == 5:  # giallo
+            return [255, 255, 0]
+        if random == 6 or random == 7 or random == 8:  # blu
+            return [0, 0, 255]
+        if random == 9:  # nero
+            return [0, 0, 0]
+        if random == 10:  # grigio
+            return [170, 170, 170]
+    else:
+        return [255, 255, 255]
+
+
+# fine colori
+
+def generazione():
+    # tutto bianco
+    for i in range(lato):
+        for j in range(lato):
+            array[j][i] = colore_sfondo
+
+    # bordi
+    for i in range(lato):
+        array[0][i] = colore_linee
+        array[lato - 1][i] = colore_linee
+        array[i][0] = colore_linee
+        array[i][lato - 1] = colore_linee
+
+        array[1][i - 1] = colore_linee
+        array[lato - 2][i] = colore_linee
+        array[i - 1][1] = colore_linee
+        array[i - 1][lato - 2] = colore_linee
+
+    # linee
+    for i in range(n_linee):
+        nuova_linea()
+
+    # colore
+    for i in range(n_colori):
+        colora_spazio(i)
+
+
+if __name__ == "__main__":
+    for n_immagine in range(n_immagini):  # loop sul numero di immagini da fare
+        array = np.zeros([lato, lato, 3], dtype=np.uint8)
+        generazione()
+        # salvataggio
+        img = Image.fromarray(array)
+        img.save(str(n_immagine) + '.png')
