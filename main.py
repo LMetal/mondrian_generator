@@ -108,8 +108,9 @@ def generation(k):
    img.save(str(k) + '.png')
 
 
-for n_immagine in range(n_immagini):
-   global array
-   array = np.zeros([lato, lato, 3], dtype=np.uint8)
-   generation(n_immagine)
+if __name__ == "__main__":
+   for n_immagine in range(n_immagini):
+      global array
+      array = np.zeros([lato, lato, 3], dtype=np.uint8)
+      generation(n_immagine)
 
